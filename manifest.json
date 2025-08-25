@@ -1,35 +1,173 @@
-{
-    "name": "p30",
-    "short_name": "p30",
-    "start_url": ".",
-    "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
-    "prefer_related_applications": false,
-    "icons": [
-        {
-            "src": "icons/Icon-192.png",
-            "sizes": "192x192",
-            "type": "image/png"
-        },
-        {
-            "src": "icons/Icon-512.png",
-            "sizes": "512x512",
-            "type": "image/png"
-        },
-        {
-            "src": "icons/Icon-maskable-192.png",
-            "sizes": "192x192",
-            "type": "image/png",
-            "purpose": "maskable"
-        },
-        {
-            "src": "icons/Icon-maskable-512.png",
-            "sizes": "512x512",
-            "type": "image/png",
-            "purpose": "maskable"
-        }
-    ]
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tourist Places</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      background: url("https://th.bing.com/th/id/R.9b81663a3934071f8de09681cec0684e?rik=DEV7m%2bUbPpmL2A&riu=http%3a%2f%2fwww.pixelstalk.net%2fwp-content%2fuploads%2f2016%2f08%2fCool-Nature-Background-Images-4523x2590.jpg&ehk=XxAKNdbLqeV84jakVaOYrmZWai83%2bRlxqGS7WF2x2%2bo%3d&risl=1&pid=ImgRaw&r=0") center/cover no-repeat;
+      color: white;
+      padding: 40px;
+      text-align: center;
+      font-size: 2em;
+      font-weight: bold;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 15px;
+      padding: 15px;
+    }
+    .card {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      cursor: pointer;
+    }
+    .card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      transition: transform 0.3s;
+    }
+    .card:hover img {
+      transform: scale(1.05);
+    }
+    .card .title {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      padding: 10px;
+      text-align: center;
+      font-weight: bold;
+      color: white;
+      background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      max-width: 600px;
+      width: 90%;
+      overflow: hidden;
+      animation: fadeIn 0.3s ease;
+    }
+    .modal-content img {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+    }
+    .modal-content .text {
+      padding: 20px;
+    }
+    .close {
+      position: absolute;
+      top: 15px;
+      right: 25px;
+      font-size: 30px;
+      color: white;
+      cursor: pointer;
+    }
+    @keyframes fadeIn {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>🌍 Tourist Places</header>
+
+  <div class="grid" id="placesGrid"></div>
+
+  <!-- Modal -->
+  <div class="modal" id="modal">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <div class="modal-content">
+      <img id="modalImg" src="" alt="">
+      <div class="text">
+        <h2 id="modalTitle"></h2>
+        <p id="modalDesc"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const destinations = [
+      {name:"Paris, France", image:"https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800", description:"The city of love, known for the Eiffel Tower and rich culture."},
+      {name:"Taj Mahal, India", image:"https://images.unsplash.com/photo-1548013146-72479768bada?w=800", description:"A symbol of eternal love, one of the Seven Wonders of the World."},
+      {name:"New York, USA", image:"https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800", description:"The city that never sleeps, full of energy and iconic landmarks."},
+      {name:"Goa Beaches, India", image:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800", description:"Famous for golden beaches, nightlife, Portuguese heritage, and seafood delicacies."},
+      {name:"Great Wall of China", image:"https://l450v.alamy.com/450v/kg3krd/china-the-great-wall-distant-view-compressed-towers-and-wall-segments-kg3krd.jpg", description:"An ancient world wonder stretching thousands of miles across China."},
+      {name:"Santorini, Greece", image:"https://tse1.mm.bing.net/th/id/OIP.ErDlLv6ojcRiY9yIlj6SAQHaE7?r=0&rs=1&pid=ImgDetMain&o=7&rm=3", description:"A stunning island with whitewashed houses and breathtaking sunsets."},
+      {name:"Sydney Opera House, Australia", image:"https://images.unsplash.com/photo-1505761671935-60b3a7427bad?w=800", description:"An architectural wonder and cultural landmark of Sydney."},
+      {name:"Machu Picchu, Peru", image:"https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=800", description:"The lost city of the Incas, nestled high in the Andes mountains."},
+      {name:"Dubai, UAE", image:"https://tse4.mm.bing.net/th/id/OIP.4_JOc60KatgeDNJff7ZNIwHaEo?r=0&rs=1&pid=ImgDetMain&o=7&rm=3", description:"A modern marvel famous for skyscrapers, luxury shopping, and desert safaris."},
+     {name:"Venice, Italy", image:"https://expertvagabond.com/wp-content/uploads/venice-italy-highlights-guide.jpg", description:"A romantic city built on canals, known for gondola rides and historic charm."},
+  { name: "Kyoto, Japan",image:"https://images.unsplash.com/photo-1549693578-d683be217e58?w=800",description:
+        "Known for ancient temples, cherry blossoms, and traditional culture.",},
+ { name: "London, UK",image: "https://images.unsplash.com/photo-1488747279002-c8523379faaa?w=800",description: "Home to Big Ben, Buckingham Palace, and the River Thames.",}, 
+    { name: "Rome, Italy",image: "https://tse1.explicit.bing.net/th/id/OIP.hGa3hMjdmgHluMiUhrTzSAHaEO?r=0&rs=1&pid=ImgDetMain&o=7&rm=3",
+    description:
+        "The Eternal City, with the Colosseum, Roman Forum, and Vatican City.",
+    },{
+      name: "Bali, Indonesia",
+    image: "https://tse3.mm.bing.net/th/id/OIP.ShZdQbYWtQHokK39wG-2KgHaEK?r=0&rs=1&pid=ImgDetMain&o=7&rm=3",
+    description:
+        "Island paradise with beaches, temples, and lush rice terraces.",
+    },{
+      name: "Bangkok, Thailand",
+    image: "https://th.bing.com/th/id/R.9effe854b644c75f5372301ef7ab9743?rik=lJFu1Auqlcncwg&riu=http%3a%2f%2ffoundtheworld.com%2fwp-content%2fuploads%2f2016%2f04%2fBangkok-Thailand-4.jpg&ehk=itBYM7%2fxh2gQJ7jfl6y2SUdkussI6Z1M3TryrCUGsx0%3d&risl=&pid=ImgRaw&r=0",
+    description: "A vibrant city with street food, temples, and nightlife.",
+    },{
+     
+    name: "Niagara Falls, Canada",
+    image: "https://media.timeout.com/images/105240077/image.jpg",
+    description: "One of the most famous waterfalls in the world.",
+    },
+      ];
+
+    const grid = document.getElementById("placesGrid");
+    destinations.forEach((d, i) => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <img src="${d.image}" alt="${d.name}">
+        <div class="title">${d.name}</div>
+      `;
+      card.onclick = () => openModal(d);
+      grid.appendChild(card);
+    });
+
+    function openModal(dest) {
+      document.getElementById("modal").style.display = "flex";
+      document.getElementById("modalImg").src = dest.image;
+      document.getElementById("modalTitle").innerText = dest.name;
+      document.getElementById("modalDesc").innerText = dest.description;
+    }
+
+    function closeModal() {
+      document.getElementById("modal").style.display = "none";
+    }
+  </script>
+</body>
+</html>
